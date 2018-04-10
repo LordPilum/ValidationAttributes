@@ -44,6 +44,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomValidationAttribute\HasValueAttribute.cs" />
+    <Compile Include="CustomValidationAttribute\ValidationAttribute.cs" />
+    <Compile Include="CustomValidationAttribute\ValidationError.cs" />
+    <Compile Include="CustomValidationAttribute\Validator.cs" />
+    <Compile Include="CustomValidationAttribute\Values\CodeListResponsibles.cs" />
+    <Compile Include="CustomValidationAttribute\Values\ValueType.cs" />
+    <Compile Include="CustomValidationAttribute\Values\MessageTypes.cs" />
     <Compile Include="DataObject\ListItemObject.cs" />
     <Compile Include="DataObject\ListObject.cs" />
     <Compile Include="DataObject\SimpleObject.cs" />
