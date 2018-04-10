@@ -10,7 +10,7 @@ namespace ValidationAttributes.DataObject
         [Required]
         public string Id { get; set; }
         [RequiredIf("Id", 1)]
-        [HasValue(ValidValues = new [] {"9","89","206"})]
+        [HasValue(ValidValues = new [] { "9", "89", "206" })]
         public string ResponsibleAgency { get; set; }
         [Required]
         public int CodeListId { get; set; }

@@ -33,6 +33,12 @@ namespace ValidationAttributes
             Console.WriteLine("Validating.");
             Validate(obj);
             Console.WriteLine("Done validating.");
+
+            Console.WriteLine("Custom validation.");
+            var errors = new List<CustomValidationAttribute.ValidationError>();
+            CustomValidationAttribute.Validator.Validate(obj, ref errors);
+            Console.WriteLine("Custom validation done.");
+
             Console.ReadKey();
         }
 

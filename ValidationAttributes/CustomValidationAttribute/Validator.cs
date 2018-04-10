@@ -6,7 +6,7 @@ namespace ValidationAttributes.CustomValidationAttribute
 {
     public class Validator
     {
-        private static void Validate(object obj, ref List<ValidationError> errors)
+        public static void Validate(object obj, ref List<ValidationError> errors)
         {
             if (obj == null)
                 return;
@@ -37,7 +37,7 @@ namespace ValidationAttributes.CustomValidationAttribute
                     if (!(attr is ValidationAttribute authAttr)) continue;
 
                     var propVal = GetPropValue(obj, prop.Name);
-                    if(!authAttr.IsValid())
+                    if(!authAttr.IsValid(propVal))
                         errors.Add(new ValidationError(ValidationErrorType.IsEmpty, prop.Name));
                 }
             }
