@@ -1,18 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
-using ValidationAttributes.CustomValidationAttribute;
-using ValidationAttributes.CustomValidationAttribute.Values;
-using ValidationAttributes.ValidationAttribute;
+﻿using ValidationAttributes.CustomValidationAttribute;
 
 namespace ValidationAttributes.DataObject
 {
     public class RootLevel
     {
-        [Required]
         public string Id { get; set; }
-        [RequiredIf("Id", 1)]
         [HasValue(ValidValues = new [] { "9", "89", "206" })]
         public string ResponsibleAgency { get; set; }
-        [Required]
+        [HasValueIf(FieldName = "ResponsibleAgency", FieldValue = "206", ValidValues = new [] { "SVK" })]
         public int CodeListId { get; set; }
         public SimpleObject MyObject { get; set; }
         public ListObject ListOfStuff { get; set; }

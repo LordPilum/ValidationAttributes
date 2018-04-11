@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ValidationAttributes.CustomValidationAttribute;
 
 namespace ValidationAttributes.DataObject
 {
     public class SimpleObject
     {
-        [Required]
         public int Id;
-        [Required]
+        [HasValueIf(FieldName = "MyObject.Id", FieldValue = "5",  ValidValues = new [] {"Sola", "Bogga"})]
         public string User { get; set; }
         public string Notice { get; set; }
     }

@@ -1,12 +1,12 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace ValidationAttributes.ValidationAttribute
 {
-    public class RequiredIfAttribute : System.ComponentModel.DataAnnotations.ValidationAttribute
+    public class RequiredIfAttribute
     {
         private String PropertyName { get; set; }
         private Object DesiredValue { get; set; }
+        /*
         private readonly RequiredAttribute _innerAttribute;
 
         public RequiredIfAttribute(String propertyName, Object desiredvalue)
@@ -28,6 +28,6 @@ namespace ValidationAttributes.ValidationAttribute
                 }
             }
             return ValidationResult.Success;
-        }
+        }*/
     }
 }

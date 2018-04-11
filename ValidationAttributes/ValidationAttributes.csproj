@@ -34,7 +34,6 @@
   <ItemGroup>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -44,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomValidationAttribute\HasValueIfAttribute.cs" />
     <Compile Include="CustomValidationAttribute\HasValueAttribute.cs" />
     <Compile Include="CustomValidationAttribute\ValidationAttribute.cs" />
     <Compile Include="CustomValidationAttribute\ValidationError.cs" />

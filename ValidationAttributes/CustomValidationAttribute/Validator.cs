@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -14,13 +15,16 @@ namespace ValidationAttributes.CustomValidationAttribute
         /// <returns>boolean isValid</returns>
         public static bool Validate(object obj, ref List<ValidationError> errors)
         {
-            return Validate(obj, null, ref errors);
+            return Validate(obj, null, null, ref errors);
         }
 
-        private static bool Validate(object obj, string parentPath, ref List<ValidationError> errors)
+        private static bool Validate(object rootObj, object obj, string parentPath, ref List<ValidationError> errors)
         {
-            if (obj == null)
+            if (rootObj == null)
                 return false;
+
+            if (obj == null)
+                obj = rootObj;
 
             var isValid = true;
 
@@ -33,7 +37,7 @@ namespace ValidationAttributes.CustomValidationAttribute
                 {
                     var path = string.Concat(parentPath, parentPath == null ? "" : ".", prop.Name);
 
-                    var propVal = GetPropValue(obj, prop.Name);
+                    var propVal = GetPropValue(rootObj, obj, prop.Name);
                     if (propVal == null)
                         continue;
 
@@ -41,10 +45,10 @@ namespace ValidationAttributes.CustomValidationAttribute
                     {
                         var i = 0;
                         foreach (var pV in (IEnumerable) propVal)
-                            isValid &= Validate(pV, string.Concat(path, $"[{i++}]"), ref errors);
+                            isValid &= Validate(rootObj, pV, string.Concat(path, $"[{i++}]"), ref errors);
                     }
                     else
-                        isValid &= Validate(propVal, path, ref errors);
+                        isValid &= Validate(rootObj, propVal, path, ref errors);
 
                     continue;
                 }
@@ -52,17 +56,46 @@ namespace ValidationAttributes.CustomValidationAttribute
                 var attrs = prop.GetCustomAttributes(true);
                 foreach (var attr in attrs)
                 {
-                    if (!(attr is ValidationAttribute authAttr)) continue;
+                    if (!(attr is ValidationAttribute)) continue;
 
-                    var propVal = GetPropValue(obj, prop.Name);
-                    if (!authAttr.IsValid(propVal))
-                    {
-                        isValid = false;
-                        var path = string.Concat(parentPath, ".", prop.Name);
-                        errors.Add(new ValidationError(ValidationErrorType.IsEmpty, path));
-                    }
+                    if (attr is HasValueAttribute valAttr)
+                        isValid &= ValidateHasValueAttribute(rootObj, obj, parentPath, prop, valAttr, ref errors);
+
+                    if (attr is HasValueIfAttribute valIfAttr)
+                        isValid &= ValidateHasValueIfAttribute(rootObj, obj, parentPath, prop, valIfAttr, ref errors);
                 }
             }
+
+            return isValid;
+        }
+
+        private static bool ValidateHasValueAttribute(object rootObj, object obj, string parentPath, PropertyInfo prop, HasValueAttribute attr, ref List<ValidationError> errors)
+        {
+            var isValid = true;
+            var propVal = GetPropValue(rootObj, obj, prop.Name);
+            if (!attr.IsValid(propVal))
+            {
+                isValid = false;
+                var path = string.Concat(parentPath, ".", prop.Name);
+                errors.Add(new ValidationError(ValidationErrorType.IsEmpty, path));
+            }
+
+            return isValid;
+        }
+
+        private static bool ValidateHasValueIfAttribute(object rootObj, object obj, string parentPath, PropertyInfo prop, HasValueIfAttribute attr, ref List<ValidationError> errors)
+        {
+            var isValid = true;
+            var propVal = GetPropValue(obj, prop.Name);
+            var dependantPropVal = GetPropValue(rootObj, prop.Name);
+
+            if(dependantPropVal.Equals(attr.FieldValue))
+                if (!attr.IsValid(propVal))
+                {
+                    isValid = false;
+                    var path = string.Concat(parentPath, ".", prop.Name);
+                    errors.Add(new ValidationError(ValidationErrorType.IsEmpty, path));
+                }
 
             return isValid;
         }
@@ -73,9 +106,24 @@ namespace ValidationAttributes.CustomValidationAttribute
         /// <param name="src">Source object.</param>
         /// <param name="propName">Property name.</param>
         /// <returns></returns>
-        private static object GetPropValue(object src, string propName)
+        public static object GetPropValue(object src, string propName)
         {
-            return src.GetType().GetProperty(propName)?.GetValue(src, null);
+            while (true)
+            {
+                if (src == null) throw new ArgumentException("Value cannot be null.", nameof(src));
+                if (propName == null) throw new ArgumentException("Value cannot be null.", nameof(propName));
+
+                if (propName.Contains("."))
+                {
+                    var temp = propName.Split(new [] {'.'}, 2);
+                    src = GetPropValue(src, temp[0]);
+                    propName = temp[1];
+                    continue;
+                }
+
+                var prop = src.GetType().GetProperty(propName);
+                return prop?.GetValue(src, null);
+            }
         }
 
         /// <summary>
@@ -86,49 +134,6 @@ namespace ValidationAttributes.CustomValidationAttribute
         private static bool IsEnumerable(PropertyInfo pi)
         {
             return typeof(IEnumerable).IsAssignableFrom(pi.PropertyType);
-        }
-
-        /// <summary>
-        /// Validating the actual content.
-        /// </summary>
-        /// <param name="value">Property value.</param>
-        /// <param name="name">Name of the property.</param>
-        /// <param name="picture">Validation picture.</param>
-        /// <param name="errors">A list of validation errors, by ref.</param>
-        private static void ValidateFormat(object value, string name, string picture, ref List<ValidationError> errors)
-        {
-            if (value == null)
-                return;
-
-            if (picture.StartsWith("X"))
-            {
-                /*if (value.GetType().IsAssignableFrom(typeof(int)))
-                {
-                    errors.Add(new EdiError(EdiErrorType.FormatError, name));
-                    return;
-                }*/
-
-                if (!value.GetType().IsAssignableFrom(typeof(string)))
-                    return;
-
-                var lengthStr = picture.Substring(2, picture.Length - 3);
-
-                if (!int.TryParse(lengthStr, out var length)) return;
-
-                if (((string)value).Length > length)
-                    errors.Add(new ValidationError(ValidationErrorType.IsTooLong, name));
-            }
-            else if (picture.StartsWith("9"))
-            {
-                if (!(value.GetType().IsAssignableFrom(typeof(int))
-                      || !value.GetType().IsAssignableFrom(typeof(decimal)))) return;
-
-                var lengthStr = picture.Substring(2, picture.Length - 3);
-                if (!int.TryParse(lengthStr, out var length)) return;
-
-                if (value.ToString().Length > length)
-                    errors.Add(new ValidationError(ValidationErrorType.IsTooLong, name));
-            }
         }
     }
 }

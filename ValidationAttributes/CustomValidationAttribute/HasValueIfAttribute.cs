@@ -2,8 +2,10 @@
 
 namespace ValidationAttributes.CustomValidationAttribute
 {
-    public class HasValueAttribute : ValidationAttribute
+    public class HasValueIfAttribute : ValidationAttribute
     {
+        public string FieldName { get; set; }
+        public string FieldValue { get; set; }
         public string[] ValidValues { get; set; }
 
         public override bool IsValid(object value)

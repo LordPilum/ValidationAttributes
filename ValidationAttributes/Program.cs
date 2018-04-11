@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using ValidationAttributes.DataObject;
 
 namespace ValidationAttributes
@@ -14,7 +13,8 @@ namespace ValidationAttributes
                 Id = "1",
                 MyObject = new SimpleObject
                 {
-                    Id = 4
+                    Id = 5,
+                    User = "Boggas"
                 },
                 ListOfStuff = new ListObject
                 {
@@ -51,22 +51,6 @@ namespace ValidationAttributes
                 foreach (var validationResult in errors)
                 {
                     Console.WriteLine(validationResult.Field);
-                }
-            }
-        }
-
-        private static void Validate(object obj)
-        {
-            var context = new ValidationContext(obj, serviceProvider: null, items: null);
-            var results = new List<ValidationResult>();
-
-            var isValid = Validator.TryValidateObject(obj, context, results, true);
-
-            if (!isValid)
-            {
-                foreach (var validationResult in results)
-                {
-                    Console.WriteLine(validationResult.ErrorMessage);
                 }
             }
         }
