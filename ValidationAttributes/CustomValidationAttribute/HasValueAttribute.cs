@@ -9,7 +9,7 @@ namespace ValidationAttributes.CustomValidationAttribute
 
         public override bool IsValid(object value)
         {
-            return ValidValues.Contains(value);
+            return ValidValues.Contains(value?.ToString());
         }
     }
 }

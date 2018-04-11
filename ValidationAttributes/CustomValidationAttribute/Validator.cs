@@ -6,27 +6,45 @@ namespace ValidationAttributes.CustomValidationAttribute
 {
     public class Validator
     {
-        public static void Validate(object obj, ref List<ValidationError> errors)
+        /// <summary>
+        /// Validator entry point.
+        /// </summary>
+        /// <param name="obj">Object to be validated</param>
+        /// <param name="errors">ref list of ValidationError</param>
+        /// <returns>boolean isValid</returns>
+        public static bool Validate(object obj, ref List<ValidationError> errors)
+        {
+            return Validate(obj, null, ref errors);
+        }
+
+        private static bool Validate(object obj, string parentPath, ref List<ValidationError> errors)
         {
             if (obj == null)
-                return;
+                return false;
+
+            var isValid = true;
 
             var props = obj.GetType().GetProperties();
             foreach (var prop in props)
             {
-                var isEnoroClass = prop.PropertyType.FullName?.Contains("Enoro") ?? false;
+                var isEnoroClass = prop.PropertyType.FullName?.Contains("DataObject") ?? false;
 
                 if (isEnoroClass)
                 {
+                    var path = string.Concat(parentPath, parentPath == null ? "" : ".", prop.Name);
+
                     var propVal = GetPropValue(obj, prop.Name);
                     if (propVal == null)
                         continue;
 
                     if (IsEnumerable(prop))
-                        foreach (var pV in (IEnumerable)propVal)
-                            Validate(pV, ref errors);
+                    {
+                        var i = 0;
+                        foreach (var pV in (IEnumerable) propVal)
+                            isValid &= Validate(pV, string.Concat(path, $"[{i++}]"), ref errors);
+                    }
                     else
-                        Validate(propVal, ref errors);
+                        isValid &= Validate(propVal, path, ref errors);
 
                     continue;
                 }
@@ -37,10 +55,16 @@ namespace ValidationAttributes.CustomValidationAttribute
                     if (!(attr is ValidationAttribute authAttr)) continue;
 
                     var propVal = GetPropValue(obj, prop.Name);
-                    if(!authAttr.IsValid(propVal))
-                        errors.Add(new ValidationError(ValidationErrorType.IsEmpty, prop.Name));
+                    if (!authAttr.IsValid(propVal))
+                    {
+                        isValid = false;
+                        var path = string.Concat(parentPath, ".", prop.Name);
+                        errors.Add(new ValidationError(ValidationErrorType.IsEmpty, path));
+                    }
                 }
             }
+
+            return isValid;
         }
 
         /// <summary>
@@ -51,7 +75,7 @@ namespace ValidationAttributes.CustomValidationAttribute
         /// <returns></returns>
         private static object GetPropValue(object src, string propName)
         {
-            return src.GetType().GetProperty(propName).GetValue(src, null);
+            return src.GetType().GetProperty(propName)?.GetValue(src, null);
         }
 
         /// <summary>

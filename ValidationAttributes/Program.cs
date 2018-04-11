@@ -30,16 +30,29 @@ namespace ValidationAttributes
                 }
             };
 
-            Console.WriteLine("Validating.");
+            /*Console.WriteLine("Validating.");
             Validate(obj);
-            Console.WriteLine("Done validating.");
+            Console.WriteLine("Done validating.");*/
 
             Console.WriteLine("Custom validation.");
-            var errors = new List<CustomValidationAttribute.ValidationError>();
-            CustomValidationAttribute.Validator.Validate(obj, ref errors);
+            CustomValidate(obj);
             Console.WriteLine("Custom validation done.");
 
             Console.ReadKey();
+        }
+
+        private static void CustomValidate(object obj)
+        {
+            var errors = new List<CustomValidationAttribute.ValidationError>();
+            var isValid = CustomValidationAttribute.Validator.Validate(obj, ref errors);
+
+            if (!isValid)
+            {
+                foreach (var validationResult in errors)
+                {
+                    Console.WriteLine(validationResult.Field);
+                }
+            }
         }
 
         private static void Validate(object obj)
