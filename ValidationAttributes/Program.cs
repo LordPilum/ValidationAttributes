@@ -14,7 +14,7 @@ namespace ValidationAttributes
                 MyObject = new SimpleObject
                 {
                     Id = 5,
-                    User = "Boggas"
+                    User = "Bogga"
                 },
                 ListOfStuff = new ListObject
                 {
@@ -24,7 +24,8 @@ namespace ValidationAttributes
                         new ListItemObject
                         {
                             Id = 4,
-                            Name = "Daniel"
+                            Name = "Daniel",
+                            Date = DateTime.Now
                         }
                     }
                 }
