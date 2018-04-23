@@ -37,7 +37,7 @@ namespace ValidationAttributes.CustomValidationAttribute
                 {
                     var path = string.Concat(parentPath, parentPath == null ? "" : ".", prop.Name);
 
-                    var propVal = GetPropValue(rootObj, obj, prop.Name);
+                    var propVal = GetPropValue(obj, prop.Name);
                     if (propVal == null)
                         continue;
 
@@ -72,7 +72,7 @@ namespace ValidationAttributes.CustomValidationAttribute
         private static bool ValidateHasValueAttribute(object rootObj, object obj, string parentPath, PropertyInfo prop, HasValueAttribute attr, ref List<ValidationError> errors)
         {
             var isValid = true;
-            var propVal = GetPropValue(rootObj, obj, prop.Name);
+            var propVal = GetPropValue(obj, prop.Name);
             if (!attr.IsValid(propVal))
             {
                 isValid = false;
@@ -87,9 +87,12 @@ namespace ValidationAttributes.CustomValidationAttribute
         {
             var isValid = true;
             var propVal = GetPropValue(obj, prop.Name);
-            var dependantPropVal = GetPropValue(rootObj, prop.Name);
+            var dependantPropVal = GetPropValue2(rootObj, attr.FieldName);
 
-            if(dependantPropVal.Equals(attr.FieldValue))
+            if (dependantPropVal == null)
+                return true;
+
+            if(dependantPropVal.ToString().Equals(attr.FieldValue))
                 if (!attr.IsValid(propVal))
                 {
                     isValid = false;
@@ -107,6 +110,25 @@ namespace ValidationAttributes.CustomValidationAttribute
         /// <param name="propName">Property name.</param>
         /// <returns></returns>
         public static object GetPropValue(object src, string propName)
+        {
+            while (true)
+            {
+                if (src == null) throw new ArgumentException("Value cannot be null.", nameof(src));
+                if (propName == null) throw new ArgumentException("Value cannot be null.", nameof(propName));
+
+                if (propName.Contains("."))
+                {
+                    var temp = propName.Split(new [] {'.'}, 2);
+                    src = GetPropValue(src, temp[0]);
+                    propName = temp[1];
+                    continue;
+                }
+
+                var prop = src.GetType().GetProperty(propName);
+                return prop?.GetValue(src, null);
+            }
+        }
+        public static object GetPropValue2(object src, string propName)
         {
             while (true)
             {

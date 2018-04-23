@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace ValidationAttributes.CustomValidationAttribute
 {
-    public class HasValueAttribute : ValidationAttribute
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class HasValueAttribute : ValidationAttribute
     {
         public string[] ValidValues { get; set; }
 

@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace ValidationAttributes.CustomValidationAttribute
 {
-    public class HasValueIfAttribute : ValidationAttribute
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
+    public sealed class HasValueIfAttribute : ValidationAttribute
     {
         public string FieldName { get; set; }
         public string FieldValue { get; set; }
