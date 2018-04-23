@@ -37,7 +37,7 @@ namespace ValidationAttributes.CustomValidationAttribute
                 {
                     var path = string.Concat(parentPath, parentPath == null ? "" : ".", prop.Name);
 
-                    var propVal = GetPropValue(rootObj, obj, prop.Name);
+                    var propVal = GetPropValue(obj, prop.Name);
                     if (propVal == null)
                         continue;
 
@@ -72,7 +72,7 @@ namespace ValidationAttributes.CustomValidationAttribute
         private static bool ValidateHasValueAttribute(object rootObj, object obj, string parentPath, PropertyInfo prop, HasValueAttribute attr, ref List<ValidationError> errors)
         {
             var isValid = true;
-            var propVal = GetPropValue(rootObj, obj, prop.Name);
+            var propVal = GetPropValue(obj, prop.Name);
             if (!attr.IsValid(propVal))
             {
                 isValid = false;
@@ -86,7 +86,7 @@ namespace ValidationAttributes.CustomValidationAttribute
         private static bool ValidateHasValueIfAttribute(object rootObj, object obj, string parentPath, PropertyInfo prop, HasValueIfAttribute attr, ref List<ValidationError> errors)
         {
             var isValid = true;
-            var propVal = GetPropValue(rootObj, obj, prop.Name);
+            var propVal = GetPropValue(obj, prop.Name);
             var dependantPropVal = GetPropValue(rootObj, obj, attr.FieldName);
 
             if (dependantPropVal == null)
@@ -101,6 +101,32 @@ namespace ValidationAttributes.CustomValidationAttribute
                 }
 
             return isValid;
+        }
+
+        /// <summary>
+        /// Gets the value of a property by property name.
+        /// </summary>
+        /// <param name="src">Source object.</param>
+        /// <param name="propName">Property name.</param>
+        /// <returns></returns>
+        public static object GetPropValue(object src, string propName)
+        {
+            while (true)
+            {
+                if (src == null) throw new ArgumentException("Value cannot be null.", nameof(src));
+                if (propName == null) throw new ArgumentException("Value cannot be null.", nameof(propName));
+
+                if (propName.Contains("."))
+                {
+                    var temp = propName.Split(new [] {'.'}, 2);
+                    src = GetPropValue(src, temp[0]);
+                    propName = temp[1];
+                    continue;
+                }
+
+                var prop = src.GetType().GetProperty(propName);
+                return prop?.GetValue(src, null);
+            }
         }
 
         /// <summary>
@@ -125,8 +151,10 @@ namespace ValidationAttributes.CustomValidationAttribute
                     continue;
                 }
 
-                var prop = src.GetType().GetProperty(propName);
-                return prop?.GetValue(src, null);
+                var obj = src ?? rootObj;
+
+                var prop = obj.GetType().GetProperty(propName);
+                return prop?.GetValue(obj, null);
             }
         }
 
