@@ -10,14 +10,22 @@ namespace ValidationAttributes.CustomValidationAttribute
         /// <summary>
         /// Validator entry point.
         /// </summary>
-        /// <param name="obj">Object to be validated</param>
-        /// <param name="errors">ref list of ValidationError</param>
+        /// <param name="obj">Object to be validated.</param>
+        /// <param name="errors">ref list of ValidationError.</param>
         /// <returns>boolean isValid</returns>
         public static bool Validate(object obj, ref List<ValidationError> errors)
         {
             return Validate(obj, null, null, ref errors);
         }
 
+        /// <summary>
+        /// Recursive validation method.
+        /// </summary>
+        /// <param name="rootObj">The root object to be validated.</param>
+        /// <param name="obj">Object to be validated. This might be a descendant of the root object.</param>
+        /// <param name="parentPath">Breadcrumb path for tracking.</param>
+        /// <param name="errors">ref list of ValidationError.</param>
+        /// <returns></returns>
         private static bool Validate(object rootObj, object obj, string parentPath, ref List<ValidationError> errors)
         {
             if (rootObj == null)
@@ -69,7 +77,16 @@ namespace ValidationAttributes.CustomValidationAttribute
             return isValid;
         }
 
-        private static bool ValidateHasValueAttribute(object rootObj, object obj, string parentPath, PropertyInfo prop, HasValueAttribute attr, ref List<ValidationError> errors)
+        /// <summary>
+        /// Validation has value attribute.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="parentPath"></param>
+        /// <param name="prop"></param>
+        /// <param name="attr"></param>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        private static bool ValidateHasValueAttribute(object obj, string parentPath, PropertyInfo prop, HasValueAttribute attr, ref List<ValidationError> errors)
         {
             var isValid = true;
             var propVal = GetPropValue(obj, prop.Name);
@@ -103,6 +120,7 @@ namespace ValidationAttributes.CustomValidationAttribute
             return isValid;
         }
 
+
         /// <summary>
         /// Gets the value of a property by property name.
         /// </summary>
@@ -120,6 +138,7 @@ namespace ValidationAttributes.CustomValidationAttribute
                 return prop?.GetValue(src, null);
             }
         }
+
 
         /// <summary>
         /// Gets the value of a property by property name.
